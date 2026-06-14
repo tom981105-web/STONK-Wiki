@@ -626,10 +626,10 @@
     if (!SC) return "";
     const code = SC.getCurrentRoomCode();
     const company = SC.getUrlCompanyId ? SC.getUrlCompanyId() : "";
+    // 관리자 페이지 링크는 비로그인 사이트(wiki)에서는 노출하지 않는다.
     return (
-      `<a class="wiki-cross" href="${SC.buildBattleUrl(code)}" target="_blank" rel="noopener">Battle</a>` +
-      `<a class="wiki-cross" href="${SC.buildBoardUrl(code)}" target="_blank" rel="noopener">Board</a>` +
-      `<a class="wiki-cross" href="${SC.buildAdminUrl(code)}" target="_blank" rel="noopener">Admin</a>`
+      `<a class="wiki-cross" href="${SC.buildBattleUrl(code)}" target="_blank" rel="noopener">주식시장</a>` +
+      `<a class="wiki-cross" href="${SC.buildBoardUrl(code)}" target="_blank" rel="noopener">주식소식</a>`
     );
   }
 
