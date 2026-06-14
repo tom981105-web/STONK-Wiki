@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STONK WIKI · 가상 주식시장의 모든 정보</title>
+  <meta name="description" content="STONK WIKI — 가상 주식시장(Market Battle)의 회사 도감, 시장 뉴스, IPO, 업종 분석을 한곳에서. 플레이어용 공식 백과사전." />
+  <link rel="stylesheet" href="css/wiki.css" />
+</head>
+<body>
+  <div id="wikiHeader"></div>
+
+  <main>
+    <!-- 히어로 -->
+    <section class="hero">
+      <h1>STONK <span class="g">WIKI</span></h1>
+      <p class="sub">가상 주식시장의 모든 정보 — 회사 · 업종 · 뉴스 · IPO를 한곳에서</p>
+      <form class="hero-search" id="heroSearch">
+        <input id="heroInput" type="search" placeholder="회사명 · 종목코드 · 업종 · 태그를 검색하세요" autocomplete="off" />
+        <button type="submit">검색</button>
+      </form>
+      <div class="hero-tags" id="heroTags"></div>
+    </section>
+
+    <!-- 모바일 1줄 시장요약 -->
+    <div class="wrap m-marketline mobile-only" id="marketLine"></div>
+
+    <!-- 시장 요약 스트립 -->
+    <div class="market-strip" id="marketStrip"></div>
+
+    <!-- 시장 심리지수 (Fear & Greed) -->
+    <div class="wrap" id="fearGreed"></div>
+
+    <!-- 오늘의 HOT 종목 -->
+    <section class="section wrap" id="hotSection"></section>
+
+    <!-- 회사 도감 -->
+    <section class="section wrap" id="dogam">
+      <div class="section-head">
+        <div>
+          <h2>회사 도감</h2>
+          <div class="desc" id="dogamCount"></div>
+        </div>
+        <div class="toolbar">
+          <input id="dogamSearch" type="search" placeholder="도감 내 검색" />
+          <select id="dogamSector"><option value="">전체 업종</option></select>
+          <select id="dogamSort">
+            <option value="name">이름순</option>
+            <option value="change">등락률순(실시간)</option>
+            <option value="price">가격순(실시간)</option>
+            <option value="risk">위험도순</option>
+            <option value="growth">성장성순</option>
+          </select>
+        </div>
+      </div>
+      <div id="dogamNotice"></div>
+      <div class="card-grid" id="dogamGrid"></div>
+    </section>
+  </main>
+
+  <footer class="wiki-foot">
+    <p><b>STONK WIKI</b> · 가상 주식시장 공식 백과사전 — 모든 데이터는 가상이며 실제 투자와 무관합니다.</p>
+    <p>STONK Battle · STONK Board 와 동일 Firebase 프로젝트 연동 · 읽기 전용</p>
+  </footer>
+
+  <script src="js/site-config.js?v=1.4.0"></script>
+  <script src="js/market-admin-adapter.js?v=ma-direct-1"></script>
+
+  <script src="js/catalog.js"></script>
+  <script src="js/firebase-wiki.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/room-analysis.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/page-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+// js/catalog.js
+// STONK WIKI 정적 회사 카탈로그 (백과사전 기준 데이터)
+// ─────────────────────────────────────────────────────────────
+// 이 파일은 Market-Board/js/data.js 의 기업 풀을 그대로 옮겨온 것입니다.
+// 게임 방(rooms/{코드})은 매판 랜덤 종목을 생성하므로, "회사 도감"의 안정적인
+// 기준 데이터는 이 정적 카탈로그가 담당합니다. 방에 연결되면 firebase-wiki.js 가
+// 같은 이름의 종목에 실시간 시세를 덧씌웁니다(읽기 전용).
+//
+// 필드: id, name, ticker, sector, ceo, business, risk, growthLabel,
+//       dividendLabel, listingStatus, description, hidden{...}
+// ※ 설립연도/상장일/태그/변동성 등 일부 필드는 원본에 없으므로
+//   core.js 의 deriveLore() 가 id 기반으로 결정적(deterministic) 생성합니다.
+(function () {
+  "use strict";
+
+  const companies = [
+    { id: "neko", name: "네코전자", ticker: "NEKO", sector: "AI·전자", ceo: "한유진", business: "감정 인식 칩, 교실용 미니 서버, 생활형 AI 단말", risk: "보통", growthLabel: "매우 높음", dividendLabel: "낮음", listingStatus: "정상", description: "고양이 귀 모양의 홈 AI 단말로 유명해진 전자 기업입니다. 공공 단말 수요와 부품 수급에 따라 기대감이 크게 흔들립니다.", hidden: { growth: 88, debt: 34, cashFlow: 63, reputation: 72, innovation: 94, legalRisk: 18, management: 81 } },
+    { id: "bana", name: "바나나항공", ticker: "BANA", sector: "항공", ceo: "박도윤", business: "저가 항공, 섬 노선, 야간 화물편", risk: "높음", growthLabel: "보통", dividendLabel: "없음", listingStatus: "주의", description: "노란색 기체와 섬 노선 특화 전략으로 알려진 항공사입니다. 유류비와 교통 정책 변화에 취약합니다.", hidden: { growth: 46, debt: 78, cashFlow: 37, reputation: 54, innovation: 42, legalRisk: 43, management: 51 } },
+    { id: "moon", name: "달빛식품", ticker: "MOON", sector: "식품", ceo: "정서린", business: "야식 키트, 냉동 디저트, 편의점 간편식", risk: "낮음", growthLabel: "보통", dividendLabel: "보통", listingStatus: "정상", description: "밤 시간대 소비를 겨냥한 간편식을 만드는 방어형 소비 기업입니다. 원재료 가격과 편의점 발주가 중요합니다.", hidden: { growth: 58, debt: 32, cashFlow: 78, reputation: 84, innovation: 49, legalRisk: 16, management: 73 } },
+    { id: "whal", name: "고래에너지", ticker: "WHAL", sector: "에너지", ceo: "문태오", business: "해상 풍력, 항만 배터리, 대형 전력 저장망", risk: "보통", growthLabel: "높음", dividendLabel: "보통", listingStatus: "정상", description: "항만 전력망과 대형 배터리 사업을 운영합니다. 정책 수주와 금리 변화가 동시에 작용하는 종목입니다.", hidden: { growth: 74, debt: 55, cashFlow: 61, reputation: 69, innovation: 71, legalRisk: 31, management: 67 } },
+    { id: "pixl", name: "픽셀게임즈", ticker: "PIXL", sector: "게임", ceo: "노가람", business: "모바일 RPG, 길드전 리그, 캐릭터 IP", risk: "높음", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "정상", description: "도트 그래픽 RPG와 길드전 콘텐츠로 충성 유저를 보유한 게임사입니다. 신작 반응이 모든 것을 바꿉니다.", hidden: { growth: 72, debt: 41, cashFlow: 49, reputation: 62, innovation: 76, legalRisk: 29, management: 58 } },
+    { id: "mint", name: "민트바이오", ticker: "MINT", sector: "바이오", ceo: "오하린", business: "피로 회복 패치, 미생물 치료제, 진단 키트", risk: "매우 높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "관찰", description: "패치형 치료제 임상 결과에 따라 기대와 공포가 반복되는 바이오 기업입니다. 루머 민감도가 높습니다.", hidden: { growth: 91, debt: 63, cashFlow: 24, reputation: 57, innovation: 89, legalRisk: 48, management: 54 } },
+    { id: "iron", name: "철갑물류", ticker: "IRON", sector: "물류", ceo: "강무현", business: "냉장 물류, 로봇 창고, 고중량 배송", risk: "보통", growthLabel: "보통", dividendLabel: "보통", listingStatus: "정상", description: "사고가 적고 느리지만 안정적인 물류사입니다. 식품과 바이오 계약 흐름이 실적을 좌우합니다.", hidden: { growth: 52, debt: 39, cashFlow: 72, reputation: 76, innovation: 56, legalRisk: 22, management: 70 } },
+    { id: "cldb", name: "구름은행", ticker: "CLDB", sector: "금융", ceo: "백시우", business: "클라우드 지갑, 게임머니 정산, 소상공인 대출", risk: "보통", growthLabel: "보통", dividendLabel: "높음", listingStatus: "정상", description: "Market City 소상공인 결제망을 장악한 금융사입니다. 금리, 연체율, 유동성 흐름에 민감합니다.", hidden: { growth: 49, debt: 46, cashFlow: 83, reputation: 71, innovation: 52, legalRisk: 26, management: 74 } },
+    { id: "rokt", name: "로켓모빌리티", ticker: "ROKT", sector: "모빌리티", ceo: "차이라", business: "전기 스쿠터, 자율 셔틀, 배터리 교환소", risk: "높음", growthLabel: "높음", dividendLabel: "없음", listingStatus: "관찰", description: "자율 셔틀과 배터리 교환소를 실험하는 모빌리티 기업입니다. 안전 인증과 자금 조달이 핵심입니다.", hidden: { growth: 82, debt: 72, cashFlow: 31, reputation: 59, innovation: 86, legalRisk: 45, management: 63 } },
+    { id: "mush", name: "버섯건설", ticker: "MUSH", sector: "건설", ceo: "임하늘", business: "친환경 주거 단지, 지하 상가, 모듈러 주택", risk: "보통", growthLabel: "낮음", dividendLabel: "보통", listingStatus: "정상", description: "균사체 단열재를 활용하는 건설사입니다. 금리와 정책성 부동산 이벤트에 강하게 반응합니다.", hidden: { growth: 39, debt: 67, cashFlow: 45, reputation: 64, innovation: 61, legalRisk: 34, management: 56 } },
+    { id: "lemn", name: "레몬클라우드", ticker: "LEMN", sector: "소프트웨어", ceo: "최다정", business: "업무용 클라우드, 협업 보드, 데이터 백업", risk: "낮음", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "정상", description: "중소기업 협업 소프트웨어를 제공하는 구독형 기업입니다. 기관 자금이 선호하는 안정 성장주입니다.", hidden: { growth: 77, debt: 25, cashFlow: 74, reputation: 82, innovation: 69, legalRisk: 20, management: 79 } },
+    { id: "sprk", name: "스파크패션", ticker: "SPRK", sector: "소비재", ceo: "윤세아", business: "스마트 의류, 스트리트 브랜드, 재활용 섬유", risk: "보통", growthLabel: "보통", dividendLabel: "낮음", listingStatus: "정상", description: "온도에 따라 색이 변하는 재킷으로 유행을 만든 소비재 기업입니다. 광고와 유행 주기가 중요합니다.", hidden: { growth: 57, debt: 36, cashFlow: 58, reputation: 77, innovation: 66, legalRisk: 18, management: 60 } },
+    { id: "aura", name: "오로라미디어", ticker: "AURA", sector: "미디어", ceo: "서이준", business: "가상 예능, 스트리밍 채널, 팬덤 데이터", risk: "보통", growthLabel: "높음", dividendLabel: "없음", listingStatus: "정상", description: "가상 출연자 예능과 팬덤 데이터를 판매하는 미디어 기업입니다. 구독 이탈률과 콘텐츠 평판이 중요합니다.", hidden: { growth: 69, debt: 44, cashFlow: 53, reputation: 68, innovation: 73, legalRisk: 37, management: 62 } },
+    { id: "shld", name: "방패보안", ticker: "SHLD", sector: "보안", ceo: "도민재", business: "금융 보안, 게임 계정 보호, 침해 대응 센터", risk: "낮음", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "정상", description: "게임 계정과 금융 지갑을 지키는 보안 기업입니다. 해킹 이슈가 생기면 방어주처럼 주목받습니다.", hidden: { growth: 71, debt: 21, cashFlow: 68, reputation: 80, innovation: 74, legalRisk: 24, management: 76 } },
+    { id: "blue", name: "푸른소재", ticker: "BLUE", sector: "친환경소재", ceo: "남가온", business: "해조류 플라스틱, 친환경 포장재, 균사체 필름", risk: "보통", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "정상", description: "해조류 기반 포장재를 만드는 소재 기업입니다. 식품과 건설 업종의 공급망 변화가 기회입니다.", hidden: { growth: 73, debt: 48, cashFlow: 42, reputation: 75, innovation: 81, legalRisk: 28, management: 64 } },
+    { id: "mrbl", name: "마블스쿨", ticker: "MRBL", sector: "교육", ceo: "김유나", business: "게임형 학습 앱, AI 튜터, 학교 운영 플랫폼", risk: "보통", growthLabel: "높음", dividendLabel: "없음", listingStatus: "신규상장 후보", description: "Market City 학생들이 쓰는 게임형 학습 앱을 운영합니다. 공공 교육 예산과 개인정보 이슈가 동시에 작용합니다.", hidden: { growth: 79, debt: 52, cashFlow: 36, reputation: 70, innovation: 82, legalRisk: 41, management: 59 } },
+
+    // ── Market Battle 본게임 종목 풀과 맞춘 기업 ──
+    { id: "mb-dalbit", name: "달빛전자", ticker: "DALB", sector: "AI·전자", ceo: "윤채원", business: "생활 가전 회로, 저전력 센서, 소형 디스플레이", risk: "보통", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "본게임 종목", description: "본게임에서 초반 랜덤 종목으로 등장할 수 있는 전자 기업입니다. 제품 기대와 부품 원가 부담이 자주 충돌합니다.", hidden: { growth: 72, debt: 38, cashFlow: 61, reputation: 69, innovation: 74, legalRisk: 22, management: 66 } },
+    { id: "mb-cloudsoft", name: "구름소프트", ticker: "CLDS", sector: "소프트웨어", ceo: "하도겸", business: "클라우드 협업툴, 게임 룸 서버, 백업 콘솔", risk: "낮음", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "본게임 종목", description: "방 코드와 실시간 데이터 흐름을 다루는 소프트웨어 기업입니다. 안정성 평판은 강하지만 성장 기대가 가격에 먼저 반영되기 쉽습니다.", hidden: { growth: 78, debt: 26, cashFlow: 72, reputation: 83, innovation: 70, legalRisk: 18, management: 77 } },
+    { id: "mb-bolt", name: "번개모빌리티", ticker: "BOLT", sector: "모빌리티", ceo: "차서율", business: "도심 전동 카트, 배터리 스테이션, 빠른 배송 셔틀", risk: "높음", growthLabel: "높음", dividendLabel: "없음", listingStatus: "본게임 종목", description: "이동 수요가 붙으면 빠르게 주목받지만 안전 인증과 현금 소모가 동시에 따라오는 모빌리티 기업입니다.", hidden: { growth: 84, debt: 73, cashFlow: 34, reputation: 58, innovation: 82, legalRisk: 42, management: 61 } },
+    { id: "mb-seafood", name: "바다식품", ticker: "BADA", sector: "식품", ceo: "송이안", business: "냉동 도시락, 해조 간식, 급식 납품", risk: "낮음", growthLabel: "보통", dividendLabel: "보통", listingStatus: "본게임 종목", description: "실시간 체결 목록에서 방어주처럼 자주 거론되는 식품 기업입니다. 원가와 납품 계약 조건에 따라 해석이 갈립니다.", hidden: { growth: 55, debt: 29, cashFlow: 81, reputation: 76, innovation: 46, legalRisk: 15, management: 72 } },
+    { id: "mb-starbio", name: "별빛바이오", ticker: "STAR", sector: "바이오", ceo: "류다현", business: "피부 재생 패치, 야간 진단 키트, 미세 캡슐 치료제", risk: "매우 높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "본게임 종목", description: "작은 임상 단서에도 가격 기대가 커지는 바이오 기업입니다. 루머와 공시의 간격이 가장 위험한 구간입니다.", hidden: { growth: 92, debt: 60, cashFlow: 26, reputation: 56, innovation: 90, legalRisk: 49, management: 55 } },
+    { id: "mb-bitegame", name: "한입게임즈", ticker: "BITE", sector: "게임", ceo: "문태린", business: "짧은 판 모바일 게임, 길드 이벤트, 캐릭터 상점", risk: "보통", growthLabel: "높음", dividendLabel: "없음", listingStatus: "본게임 종목", description: "짧고 빠른 게임성을 앞세운 게임사입니다. 이벤트 매출은 강하지만 흥행 수명이 짧다는 평가도 함께 받습니다.", hidden: { growth: 74, debt: 37, cashFlow: 54, reputation: 65, innovation: 71, legalRisk: 28, management: 60 } },
+    { id: "mb-greenenergy", name: "초록에너지", ticker: "GREN", sector: "에너지", ceo: "정해솔", business: "소형 태양광, 학교 전력망, 배터리 재활용", risk: "보통", growthLabel: "높음", dividendLabel: "보통", listingStatus: "본게임 종목", description: "정책 수혜가 붙을 때 강하지만 설비 투자 부담도 커지는 에너지 기업입니다.", hidden: { growth: 76, debt: 58, cashFlow: 57, reputation: 70, innovation: 73, legalRisk: 30, management: 68 } },
+    { id: "mb-cotton", name: "솜사탕유통", ticker: "COTN", sector: "소비재", ceo: "나유리", business: "간식 유통, 팝업 매장, 캐릭터 굿즈", risk: "보통", growthLabel: "보통", dividendLabel: "낮음", listingStatus: "본게임 종목", description: "밈과 유행에 민감한 유통 기업입니다. 관심은 빠르게 붙지만 재고 부담이 뒤늦게 확인됩니다.", hidden: { growth: 62, debt: 41, cashFlow: 59, reputation: 74, innovation: 55, legalRisk: 20, management: 58 } },
+    { id: "mb-rainbowair", name: "무지개항공", ticker: "RAIN", sector: "항공", ceo: "기준호", business: "저가 항공, 관광 노선, 야간 화물", risk: "높음", growthLabel: "보통", dividendLabel: "없음", listingStatus: "본게임 종목", description: "본게임 화면에서 변동성이 크게 보이는 항공 기업입니다. 유류비와 노선 규제, 단기 수급이 동시에 흔듭니다.", hidden: { growth: 48, debt: 76, cashFlow: 39, reputation: 53, innovation: 43, legalRisk: 44, management: 50 } },
+    { id: "mb-acorn", name: "도토리금융", ticker: "ACRN", sector: "금융", ceo: "오지훈", business: "소액 대출, 게임머니 정산, 랭킹 보상 지갑", risk: "보통", growthLabel: "보통", dividendLabel: "높음", listingStatus: "본게임 종목", description: "금리와 유동성 뉴스에 민감한 금융 기업입니다. 안정적 현금흐름과 연체율 우려가 함께 보입니다.", hidden: { growth: 51, debt: 45, cashFlow: 82, reputation: 68, innovation: 54, legalRisk: 27, management: 73 } },
+    { id: "mb-galaxychip", name: "은하반도체", ticker: "GLXY", sector: "AI·전자", ceo: "강루아", business: "추론 칩, 센서 패키징, 저전력 메모리", risk: "높음", growthLabel: "매우 높음", dividendLabel: "낮음", listingStatus: "본게임 종목", description: "AI 테마가 강할 때 가장 먼저 주목받지만 수요 선반영과 공급 병목이 가격을 흔듭니다.", hidden: { growth: 89, debt: 52, cashFlow: 45, reputation: 67, innovation: 92, legalRisk: 31, management: 65 } },
+    { id: "mb-softchem", name: "포근화학", ticker: "SOFT", sector: "친환경소재", ceo: "한세민", business: "완충 소재, 저자극 접착제, 포장 필름", risk: "보통", growthLabel: "보통", dividendLabel: "보통", listingStatus: "본게임 종목", description: "소재 가격과 납품처 변화에 따라 천천히 재평가되는 화학 기업입니다.", hidden: { growth: 57, debt: 43, cashFlow: 64, reputation: 71, innovation: 60, legalRisk: 26, management: 67 } },
+    { id: "mb-heartrobot", name: "두근로보틱스", ticker: "HART", sector: "모빌리티", ceo: "백로운", business: "매장 로봇, 배송 보조 팔, 자동 충전 모듈", risk: "높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "본게임 종목", description: "로봇과 모빌리티 사이에 걸친 고성장 기업입니다. 계약 뉴스가 커도 양산 능력이 확인되어야 합니다.", hidden: { growth: 88, debt: 69, cashFlow: 33, reputation: 63, innovation: 91, legalRisk: 39, management: 62 } },
+    { id: "mb-dawnent", name: "새벽엔터", ticker: "DAWN", sector: "미디어", ceo: "서라희", business: "심야 콘서트, 가상 아이돌, 팬덤 데이터", risk: "보통", growthLabel: "높음", dividendLabel: "없음", listingStatus: "본게임 종목", description: "팬덤 심리와 구독 지표가 먼저 움직이는 엔터 기업입니다. 좋은 반응도 이미 알려졌다면 가격 반응은 제한될 수 있습니다.", hidden: { growth: 73, debt: 46, cashFlow: 50, reputation: 66, innovation: 75, legalRisk: 34, management: 59 } },
+    { id: "mb-whalemul", name: "고래물산", ticker: "WMLS", sector: "물류", ceo: "공태오", business: "대형 창고, 항만 보관, 전략 물자 유통", risk: "보통", growthLabel: "보통", dividendLabel: "보통", listingStatus: "본게임 종목", description: "거래대금이 커지는 라운드에서 수급 해석이 자주 붙는 물류 기업입니다. 안정성과 큰손 루머가 동시에 따라옵니다.", hidden: { growth: 54, debt: 42, cashFlow: 73, reputation: 72, innovation: 51, legalRisk: 24, management: 69 } },
+    { id: "mb-dandelion", name: "민들레제약", ticker: "DNDR", sector: "바이오", ceo: "민서윤", business: "알레르기 치료제, 호흡기 패치, 약국 공급망", risk: "높음", growthLabel: "높음", dividendLabel: "낮음", listingStatus: "본게임 종목", description: "제약 방어성과 바이오 기대가 섞인 기업입니다. 임상보다 약국 발주 데이터가 먼저 힌트를 줄 때가 있습니다.", hidden: { growth: 75, debt: 50, cashFlow: 48, reputation: 69, innovation: 78, legalRisk: 38, management: 63 } },
+    { id: "ipo-rockettech", name: "떡상테크", ticker: "TTEK", sector: "AI·전자", ceo: "장도현", business: "초단기 AI 분석기, 미니 서버, 교육용 단말", risk: "매우 높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "공모주 과열 라운드에서 이름이 자주 도는 신규상장 후보입니다. 이름값 때문에 기대가 먼저 붙는 편입니다.", hidden: { growth: 94, debt: 61, cashFlow: 28, reputation: 58, innovation: 92, legalRisk: 36, management: 57 } },
+    { id: "ipo-unicornsoft", name: "유니콘소프트", ticker: "UNIC", sector: "소프트웨어", ceo: "채다인", business: "방 관리 SaaS, 실시간 채팅, 점수판 API", risk: "높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "상장 전부터 기관 관심이 있다는 말이 돌지만 매출 검증은 아직 부족한 소프트웨어 후보입니다.", hidden: { growth: 90, debt: 44, cashFlow: 35, reputation: 72, innovation: 84, legalRisk: 28, management: 66 } },
+    { id: "ipo-miraemobil", name: "미래모빌", ticker: "MIRA", sector: "모빌리티", ceo: "차재민", business: "무인 셔틀, 소형 배터리, 교내 이동 플랫폼", risk: "매우 높음", growthLabel: "높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "상장 전 기대와 안전 인증 리스크가 정면으로 충돌하는 모빌리티 후보입니다.", hidden: { growth: 86, debt: 70, cashFlow: 30, reputation: 60, innovation: 88, legalRisk: 46, management: 58 } },
+    { id: "ipo-firstbio", name: "첫걸음바이오", ticker: "STEP", sector: "바이오", ceo: "노하은", business: "초기 진단 키트, 저가 임상 플랫폼, 샘플 분석", risk: "매우 높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "검증 단계가 짧아 정보 공백이 큰 바이오 IPO 후보입니다. 루머가 가장 잘 번지는 종목군입니다.", hidden: { growth: 91, debt: 65, cashFlow: 22, reputation: 54, innovation: 87, legalRisk: 52, management: 52 } },
+    { id: "ipo-starenergy", name: "샛별에너지", ticker: "SENE", sector: "에너지", ceo: "고아린", business: "도시형 ESS, 야간 전력 거래, 초소형 충전소", risk: "높음", growthLabel: "높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "에너지 쇼크 라운드에서 수혜와 원가 부담이 동시에 붙는 신규 후보입니다.", hidden: { growth: 81, debt: 62, cashFlow: 41, reputation: 66, innovation: 79, legalRisk: 33, management: 61 } },
+    { id: "ipo-rookiegames", name: "루키게임즈", ticker: "ROOK", sector: "게임", ceo: "최이든", business: "신규 모바일 퍼즐, 스트리머 협업, 시즌 패스", risk: "높음", growthLabel: "높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "신작 지표가 좋으면 빠르게 달아오르지만 이용자 잔존율 확인 전까지 판단이 어렵습니다.", hidden: { growth: 82, debt: 39, cashFlow: 42, reputation: 64, innovation: 73, legalRisk: 25, management: 56 } },
+    { id: "ipo-mythent", name: "신화엔터", ticker: "MYTH", sector: "미디어", ceo: "은도윤", business: "가상 공연장, 팬덤 멤버십, IP 라이선스", risk: "보통", growthLabel: "높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "팬덤 구매력은 강하지만 상장 이후 락업 물량 우려가 따라붙는 엔터 후보입니다.", hidden: { growth: 78, debt: 47, cashFlow: 47, reputation: 75, innovation: 77, legalRisk: 30, management: 62 } },
+    { id: "ipo-quantumchip", name: "퀀텀반도체", ticker: "QNTM", sector: "AI·전자", ceo: "권태성", business: "양자 보조 칩, 고성능 패키징, 연구용 보드", risk: "매우 높음", growthLabel: "매우 높음", dividendLabel: "없음", listingStatus: "IPO 후보", description: "기술 설명은 화려하지만 매출 전환 시점이 멀어 해석이 갈리는 반도체 IPO 후보입니다.", hidden: { growth: 95, debt: 67, cashFlow: 20, reputation: 61, innovation: 96, legalRisk: 42, management: 54 } },
+  ];
+
+  // 업종 메타(아이콘/한줄 설명) — 없으면 기본값으로 graceful 처리
+  const sectorMeta = {
+    "AI·전자": { icon: "🤖", blurb: "AI 칩과 전자 단말. 테마 강세 때 가장 먼저 움직입니다." },
+    "반도체": { icon: "💾", blurb: "칩 설계·제조. 수요 사이클과 공급 병목이 가격을 좌우합니다." },
+    "바이오": { icon: "🧬", blurb: "임상과 진단. 루머 민감도가 가장 높은 고위험 고성장군." },
+    "게임": { icon: "🎮", blurb: "신작 흥행이 모든 것을 바꾸는 콘텐츠 업종." },
+    "에너지": { icon: "⚡", blurb: "전력·배터리. 정책 수주와 금리에 동시에 반응합니다." },
+    "2차전지": { icon: "🔋", blurb: "배터리 소재·셀. 전기차/ESS 수요에 연동됩니다." },
+    "금융": { icon: "🏦", blurb: "대출·결제. 금리와 연체율, 유동성 흐름이 핵심." },
+    "모빌리티": { icon: "🛴", blurb: "이동 수단·로봇. 고성장이지만 인증·자금 리스크가 큽니다." },
+    "항공": { icon: "✈️", blurb: "여객·화물. 유류비와 규제에 취약한 고변동 업종." },
+    "식품": { icon: "🍙", blurb: "간편식·급식. 경기 방어형 소비주로 분류됩니다." },
+    "물류": { icon: "📦", blurb: "창고·배송. 거래 계약 흐름이 실적을 좌우합니다." },
+    "건설": { icon: "🏗️", blurb: "주거·인프라. 금리와 부동산 정책에 민감합니다." },
+    "소프트웨어": { icon: "💻", blurb: "구독형 SaaS. 기관이 선호하는 안정 성장주." },
+    "소비재": { icon: "🛍️", blurb: "패션·유통. 유행 주기와 재고 부담이 변수." },
+    "미디어": { icon: "🎬", blurb: "콘텐츠·팬덤. 구독 지표와 평판이 가격을 만듭니다." },
+    "보안": { icon: "🛡️", blurb: "보안·인증. 침해 이슈 때 방어주처럼 부각됩니다." },
+    "친환경소재": { icon: "🌿", blurb: "친환경 소재. 공급망 변화가 기회이자 위험." },
+    "교육": { icon: "📚", blurb: "에듀테크. 공공 예산과 개인정보 이슈가 공존합니다." },
+    "인터넷·게임": { icon: "🌐", blurb: "플랫폼·게임. 트래픽과 신작이 동력입니다." },
+    "신규상장": { icon: "🆕", blurb: "갓 상장한 종목. 정보가 적어 변동성이 큽니다." },
+  };
+
+  window.WikiCatalog = { companies, sectorMeta };
+})();
