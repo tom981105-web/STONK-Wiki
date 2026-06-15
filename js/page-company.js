@@ -186,10 +186,11 @@
         if (empty) empty.hidden = true;
         const geom = window.MarketHistory.renderChart(canvas, candles, { period: chartPeriod });
         bindCandleHover(canvas, tip, geom, chartPeriod);
-        // 캔들 데이터 상태(읽기 전용) 표시
+        // 보유 데이터 범위 + 캔들 수(읽기 전용) — 실제 t 기준, 가짜 확장 없음
         if (note) {
           const cnt = (k) => (hist[k] ? Object.keys(hist[k]).length : 0);
-          note.textContent = `캔들 1m ${cnt("candles1m")} · 5m ${cnt("candles5m")} · 15m ${cnt("candles15m")} · 1h ${cnt("candles1h")} · 읽기 전용`;
+          const rn = window.MarketHistory.rangeNote ? window.MarketHistory.rangeNote(chartPeriod, candles) : "";
+          note.textContent = `${rn} · 캔들 1m ${cnt("candles1m")}/5m ${cnt("candles5m")}/15m ${cnt("candles15m")}/1h ${cnt("candles1h")} · 읽기 전용`;
         }
         return;
       }
