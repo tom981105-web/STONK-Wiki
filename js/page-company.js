@@ -11,7 +11,7 @@
   const _params = new URLSearchParams(location.search);
   const id = _params.get("id") || _params.get("company") || _params.get("companyId");
   const root = document.getElementById("companyRoot");
-  let chartPeriod = "all";
+  let chartPeriod = "1d";
 
   function metricBar(label, val, invert) {
     const v = Math.max(0, Math.min(100, Number(val) || 0));
@@ -158,16 +158,14 @@
       return `<div class="panel wiki-sec" data-sec="chart" id="sec-chart"><h3>📉 주가 차트</h3>
         <div class="chart-empty"><span class="em-ico">🔌</span>가격 데이터 부족 — <span class="muted">방에 연결되면 실시간 가격이 기록되어 차트가 그려집니다.</span></div></div>`;
     }
-    const periods = [["1d", "1일"], ["7d", "7일"], ["30d", "30일"], ["all", "전체"]];
+    const periods = [["tick", "1틱"], ["1d", "1일"], ["3d", "3일"], ["1w", "1주"], ["1m", "1달"], ["all", "전체"]];
     return `<div class="panel wiki-sec" data-sec="chart" id="sec-chart"><h3>📉 주가 차트 <span class="badge live">실시간 기록</span></h3>
       <div class="seg" style="margin-bottom:10px">${periods.map((p) => `<button data-period="${p[0]}" class="${p[0] === chartPeriod ? "is-active" : ""}">${p[1]}</button>`).join("")}</div>
       <div class="chart-wrap"><canvas id="nbChart"></canvas><div id="nbChartTip" class="chart-tip hidden"></div><div id="chartEmpty" class="chart-empty" hidden><span class="em-ico">📊</span>가격 데이터 부족<br/><span class="muted">관측된 가격 기록이 쌓이면 표시됩니다.</span></div></div>
+      <p id="chartDataNote" class="muted" style="font-size:11.5px;margin:6px 0 0"></p>
       <p class="muted" style="font-size:11.5px;margin:8px 0 0">※ 실제 관측된 시세만 기록합니다(랜덤 생성 없음). 세션 동안 누적됩니다.</p>
     </div>`;
   }
-
-  // 위키 기간키 → 공용 캔들 tier 매핑 (게임시간≠실시간, 보유 history 에 맞춰 매핑)
-  const WIKI_PERIOD_MAP = { "1d": "1d", "7d": "1w", "30d": "3m", "all": "all" };
 
   function drawChart(e) {
     if (!e.live) return;
@@ -177,18 +175,26 @@
     if (!canvas) return;
 
     // 1순위: Firebase 압축 캔들 히스토리 → 캔들 + 거래량 + 호버 상세(읽기 전용)
+    // 기간키(tick/1d/3d/1w/1m/all)를 공용 유틸이 직접 tier 매핑한다.
+    const note = document.getElementById("chartDataNote");
     const raw = window.WikiLive.stockRaw ? window.WikiLive.stockRaw(e.live.id) : null;
     const hist = raw && raw.history;
     if (window.MarketHistory && hist) {
-      const candles = window.MarketHistory.seriesFor(hist, WIKI_PERIOD_MAP[chartPeriod] || "1d", 300);
+      const candles = window.MarketHistory.seriesFor(hist, chartPeriod);
       if (candles && candles.length) {
         canvas.style.visibility = "visible";
         if (empty) empty.hidden = true;
-        const geom = window.MarketHistory.renderChart(canvas, candles, {});
-        bindCandleHover(canvas, tip, geom);
+        const geom = window.MarketHistory.renderChart(canvas, candles, { period: chartPeriod });
+        bindCandleHover(canvas, tip, geom, chartPeriod);
+        // 캔들 데이터 상태(읽기 전용) 표시
+        if (note) {
+          const cnt = (k) => (hist[k] ? Object.keys(hist[k]).length : 0);
+          note.textContent = `캔들 1m ${cnt("candles1m")} · 5m ${cnt("candles5m")} · 15m ${cnt("candles15m")} · 1h ${cnt("candles1h")} · 읽기 전용`;
+        }
         return;
       }
     }
+    if (note) note.textContent = "";
 
     // 2순위: 기존 관측 라인 차트 (catch-up 이전/구버전 호환)
     const pts = window.WikiLive.priceHistory(e.live.id, chartPeriod);
@@ -205,12 +211,12 @@
 
   // 캔들 차트 호버/터치 상세 박스 (공용 유틸 재사용)
   let candleHoverBound = null;
-  function bindCandleHover(canvas, tip, geom) {
+  function bindCandleHover(canvas, tip, geom, period) {
     if (!geom || !tip) return;
     let cur = geom, hover = -1;
     const MH = window.MarketHistory;
-    if (candleHoverBound && candleHoverBound.canvas === canvas) { candleHoverBound.set(geom); return; }
-    const ctl = { canvas, set(g) { cur = g; } };
+    if (candleHoverBound && candleHoverBound.canvas === canvas) { candleHoverBound.set(geom, period); return; }
+    const ctl = { canvas, period, set(g, p) { cur = g; if (p) ctl.period = p; } };
     candleHoverBound = ctl;
     const move = (ev) => {
       if (!cur) return;
@@ -219,11 +225,11 @@
       const idx = Math.max(0, Math.min(cur.candles.length - 1, Math.floor(px / cur.cw)));
       if (idx === hover) return;
       hover = idx;
-      cur = MH.renderChart(canvas, cur.candles, { hover: idx });
+      cur = MH.renderChart(canvas, cur.candles, { hover: idx, period: ctl.period });
       ctl.set(cur);
       showTip(tip, cur, idx);
     };
-    const leave = () => { hover = -1; if (cur) { cur = MH.renderChart(canvas, cur.candles, {}); ctl.set(cur); } tip.classList.add("hidden"); };
+    const leave = () => { hover = -1; if (cur) { cur = MH.renderChart(canvas, cur.candles, { period: ctl.period }); ctl.set(cur); } tip.classList.add("hidden"); };
     canvas.addEventListener("mousemove", move);
     canvas.addEventListener("mouseleave", leave);
     canvas.addEventListener("touchstart", move, { passive: true });
@@ -235,7 +241,7 @@
     const num = window.MarketHistory.fmtNum;
     const rate = c.o ? ((c.c - c.o) / c.o) * 100 : 0;
     const cls = rate > 0 ? "up" : rate < 0 ? "down" : "flat";
-    const when = c.t > 1e11 ? new Date(c.t).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "구간 " + (idx + 1);
+    const when = window.MarketHistory.fmtFull(c.t) || ("구간 " + (idx + 1));
     tip.innerHTML = '<div class="tip-when">' + when + '</div>' +
       '<div class="tip-row"><span>시작</span><b>' + num(c.o) + '</b></div>' +
       '<div class="tip-row"><span>마지막</span><b>' + num(c.c) + '</b></div>' +

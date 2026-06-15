@@ -735,7 +735,8 @@
     const s = window.WikiLive.state;
     if (s.connected) {
       // v1.2: 전체("시장 코드 X · 시장 진행중") / 모바일 축약("X · 진행중")를 CSS로 전환
-      label.innerHTML = `<span class="rc-full">시장 코드 ${esc(s.code)} · ${esc(s.status)}</span>` +
+      // wiki 는 읽기 중심 — '읽기전용' 명시(시장 보정은 battle/admin 이 수행)
+      label.innerHTML = `<span class="rc-full">시장 코드 ${esc(s.code)} · ${esc(s.status)} · 읽기전용</span>` +
         `<span class="rc-short">${esc(s.code)} · ${esc(s.statusShort || s.status)}</span>`;
       btn.classList.add("on");
     } else {
