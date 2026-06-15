@@ -161,16 +161,36 @@
     const periods = [["1d", "1일"], ["7d", "7일"], ["30d", "30일"], ["all", "전체"]];
     return `<div class="panel wiki-sec" data-sec="chart" id="sec-chart"><h3>📉 주가 차트 <span class="badge live">실시간 기록</span></h3>
       <div class="seg" style="margin-bottom:10px">${periods.map((p) => `<button data-period="${p[0]}" class="${p[0] === chartPeriod ? "is-active" : ""}">${p[1]}</button>`).join("")}</div>
-      <div class="chart-wrap"><canvas id="nbChart"></canvas><div id="chartEmpty" class="chart-empty" hidden><span class="em-ico">📊</span>가격 데이터 부족<br/><span class="muted">관측된 가격 기록이 쌓이면 표시됩니다.</span></div></div>
+      <div class="chart-wrap"><canvas id="nbChart"></canvas><div id="nbChartTip" class="chart-tip hidden"></div><div id="chartEmpty" class="chart-empty" hidden><span class="em-ico">📊</span>가격 데이터 부족<br/><span class="muted">관측된 가격 기록이 쌓이면 표시됩니다.</span></div></div>
       <p class="muted" style="font-size:11.5px;margin:8px 0 0">※ 실제 관측된 시세만 기록합니다(랜덤 생성 없음). 세션 동안 누적됩니다.</p>
     </div>`;
   }
+
+  // 위키 기간키 → 공용 캔들 tier 매핑 (게임시간≠실시간, 보유 history 에 맞춰 매핑)
+  const WIKI_PERIOD_MAP = { "1d": "1d", "7d": "1w", "30d": "3m", "all": "all" };
 
   function drawChart(e) {
     if (!e.live) return;
     const canvas = document.getElementById("nbChart");
     const empty = document.getElementById("chartEmpty");
+    const tip = document.getElementById("nbChartTip");
     if (!canvas) return;
+
+    // 1순위: Firebase 압축 캔들 히스토리 → 캔들 + 거래량 + 호버 상세(읽기 전용)
+    const raw = window.WikiLive.stockRaw ? window.WikiLive.stockRaw(e.live.id) : null;
+    const hist = raw && raw.history;
+    if (window.MarketHistory && hist) {
+      const candles = window.MarketHistory.seriesFor(hist, WIKI_PERIOD_MAP[chartPeriod] || "1d", 300);
+      if (candles && candles.length) {
+        canvas.style.visibility = "visible";
+        if (empty) empty.hidden = true;
+        const geom = window.MarketHistory.renderChart(canvas, candles, {});
+        bindCandleHover(canvas, tip, geom);
+        return;
+      }
+    }
+
+    // 2순위: 기존 관측 라인 차트 (catch-up 이전/구버전 호환)
     const pts = window.WikiLive.priceHistory(e.live.id, chartPeriod);
     if (!pts || pts.length < 2) {
       canvas.style.visibility = "hidden";
@@ -179,7 +199,55 @@
     }
     canvas.style.visibility = "visible";
     if (empty) empty.hidden = true;
+    if (tip) tip.classList.add("hidden");
     window.WikiChart.draw(canvas, pts);
+  }
+
+  // 캔들 차트 호버/터치 상세 박스 (공용 유틸 재사용)
+  let candleHoverBound = null;
+  function bindCandleHover(canvas, tip, geom) {
+    if (!geom || !tip) return;
+    let cur = geom, hover = -1;
+    const MH = window.MarketHistory;
+    if (candleHoverBound && candleHoverBound.canvas === canvas) { candleHoverBound.set(geom); return; }
+    const ctl = { canvas, set(g) { cur = g; } };
+    candleHoverBound = ctl;
+    const move = (ev) => {
+      if (!cur) return;
+      const rect = canvas.getBoundingClientRect();
+      const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+      const idx = Math.max(0, Math.min(cur.candles.length - 1, Math.floor(px / cur.cw)));
+      if (idx === hover) return;
+      hover = idx;
+      cur = MH.renderChart(canvas, cur.candles, { hover: idx });
+      ctl.set(cur);
+      showTip(tip, cur, idx);
+    };
+    const leave = () => { hover = -1; if (cur) { cur = MH.renderChart(canvas, cur.candles, {}); ctl.set(cur); } tip.classList.add("hidden"); };
+    canvas.addEventListener("mousemove", move);
+    canvas.addEventListener("mouseleave", leave);
+    canvas.addEventListener("touchstart", move, { passive: true });
+    canvas.addEventListener("touchmove", move, { passive: true });
+    canvas.addEventListener("touchend", leave);
+  }
+  function showTip(tip, geom, idx) {
+    const c = geom.candles[idx]; if (!c) return;
+    const num = window.MarketHistory.fmtNum;
+    const rate = c.o ? ((c.c - c.o) / c.o) * 100 : 0;
+    const cls = rate > 0 ? "up" : rate < 0 ? "down" : "flat";
+    const when = c.t > 1e11 ? new Date(c.t).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "구간 " + (idx + 1);
+    tip.innerHTML = '<div class="tip-when">' + when + '</div>' +
+      '<div class="tip-row"><span>시작</span><b>' + num(c.o) + '</b></div>' +
+      '<div class="tip-row"><span>마지막</span><b>' + num(c.c) + '</b></div>' +
+      '<div class="tip-row"><span>최고</span><b class="up">' + num(c.h) + '</b></div>' +
+      '<div class="tip-row"><span>최저</span><b class="down">' + num(c.l) + '</b></div>' +
+      '<div class="tip-row"><span>거래량</span><b>' + num(c.v) + '</b></div>' +
+      '<div class="tip-row"><span>등락률</span><b class="' + cls + '">' + (rate >= 0 ? "+" : "") + rate.toFixed(2) + '%</b></div>';
+    tip.classList.remove("hidden");
+    const x = idx * geom.cw + geom.cw / 2, right = x > geom.plotW * 0.6;
+    tip.style.left = right ? "" : (x + 10) + "px";
+    tip.style.right = right ? (geom.cssW - x + 10) + "px" : "";
+    tip.style.top = "8px";
   }
 
   // ───────────── v1.2.1 모바일 전용 UI ─────────────

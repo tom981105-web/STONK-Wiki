@@ -331,9 +331,17 @@ a { color: inherit; text-decoration: none; }
 
 /* 차트 */
 .chart-wrap { position:relative; height:220px; }
-.chart-wrap canvas { width:100%; height:100%; display:block; }
+.chart-wrap canvas { width:100%; height:100%; display:block; touch-action:none; }
 .chart-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center; color:var(--text-dim); font-size:14px; gap:4px; }
+/* 캔들 차트 호버 상세 카드 */
+.chart-tip { position:absolute; z-index:6; min-width:132px; pointer-events:none;
+  background:var(--panel,#161b27); border:1px solid rgba(255,255,255,.12); border-radius:9px;
+  box-shadow:0 8px 26px rgba(0,0,0,.45); padding:8px 10px; font-size:12px; color:var(--text,#e8edf6); }
+.chart-tip.hidden { display:none; }
+.chart-tip .tip-when { font-weight:700; margin-bottom:5px; color:var(--text-dim,#9fb0cc); }
+.chart-tip .tip-row { display:flex; justify-content:space-between; gap:12px; line-height:1.7; }
+.chart-tip .tip-row span { color:var(--text-dim,#9fb0cc); }
 
 /* 뉴스 감성 바 */
 .sent-bar { display:flex; height:16px; border-radius:8px; overflow:hidden; background:var(--border); }

@@ -134,6 +134,13 @@
     return stocksArray().find((s) => s.id === id) || null;
   }
 
+  // 원본 stock 노드(history 포함) — 압축 캔들 차트용. 정규화 전 데이터.
+  function stockRaw(id) {
+    const room = state.room;
+    if (!room || !room.stocks) return null;
+    return room.stocks[id] || null;
+  }
+
   // ── 가격 기록(priceHistory): 실시간으로 관찰된 실제 가격만 누적 (랜덤 생성 안 함) ──
   // 1순위: 방에 priceHistory 노드가 있으면 그대로 사용
   // 2순위: 없으면 마켓틱이 바뀔 때마다 관찰값을 sessionStorage에 누적
@@ -287,6 +294,7 @@
     stocksArray,
     stockByName,
     stockById,
+    stockRaw,
     isEquity,
     priceHistory,
   };
