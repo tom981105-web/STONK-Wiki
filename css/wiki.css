@@ -1,6 +1,31 @@
 /* css/wiki.css — STONK WIKI 다크 테마 + 반응형
    디자인 컨셉: 네이버 증권 + 인베스팅 + TradingView + 위키백과 혼합 */
+/* 토스 라이트(기본). 다크는 [data-theme="dark"] 토글로 기존 다크룩 복원. */
 :root {
+  --bg: #f2f4f6;
+  --bg-2: #e9edf1;
+  --panel: #ffffff;
+  --panel-2: #f7f8fa;
+  --border: #e5e8eb;
+  --border-2: #eef1f4;
+  --text: #191f28;
+  --text-dim: #4e5968;
+  --text-mute: #8b95a1;
+  --green: #15b76d;
+  --blue: #3182f6;
+  --amber: #f59e0b;
+  --up: #f04452;   /* 한국식: 상승=빨강 */
+  --down: #3485fa; /* 하락=파랑 */
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 2px 12px rgba(20, 28, 46, .06), 0 1px 2px rgba(20, 28, 46, .04);
+  --maxw: 1180px;
+  --header-bg: rgba(255, 255, 255, .9);
+  --bg-grad: radial-gradient(1200px 600px at 80% -10%, #ffffff 0%, var(--bg) 60%);
+  font-synthesis: none;
+}
+/* 다크 토글 = 기존 위키 다크 디자인 복원(표면만) */
+[data-theme="dark"] {
   --bg: #0f172a;
   --bg-2: #131c31;
   --panel: #18233c;
@@ -11,22 +36,17 @@
   --text-dim: #9fb0cc;
   --text-mute: #6b7c9c;
   --green: #22c55e;
-  --blue: #3b82f6;
-  --amber: #f59e0b;
-  --up: #f23645;   /* 한국식: 상승=빨강 */
-  --down: #2f6bff; /* 하락=파랑 */
-  --radius: 14px;
-  --radius-sm: 9px;
   --shadow: 0 6px 24px rgba(0, 0, 0, .35);
-  --maxw: 1180px;
-  font-synthesis: none;
+  --header-bg: rgba(15, 23, 42, .9);
+  --bg-grad: radial-gradient(1200px 600px at 80% -10%, #16213c 0%, var(--bg) 60%);
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: radial-gradient(1200px 600px at 80% -10%, #16213c 0%, var(--bg) 60%) fixed;
+  background: var(--bg-grad) fixed;
   color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -44,7 +64,7 @@ a { color: inherit; text-decoration: none; }
 /* ───────── 헤더 ───────── */
 .wiki-top {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(15, 23, 42, .9);
+  background: var(--header-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
@@ -54,7 +74,7 @@ a { color: inherit; text-decoration: none; }
 }
 .wiki-brand { display: flex; align-items: baseline; gap: 7px; flex: 0 0 auto; }
 .wiki-logo { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
-.wiki-logo.accent { color: var(--green); }
+.wiki-logo.accent { color: var(--blue); }
 .wiki-tagline { font-size: 12px; color: var(--text-mute); margin-left: 6px; }
 .wiki-search-mini { flex: 1 1 auto; }
 .wiki-search-mini input {
@@ -87,7 +107,7 @@ a { color: inherit; text-decoration: none; }
 /* ───────── 히어로 / 검색 ───────── */
 .hero { text-align: center; padding: 56px 18px 28px; }
 .hero h1 { font-size: clamp(34px, 6vw, 58px); margin: 0; font-weight: 900; letter-spacing: -1.5px; }
-.hero h1 .g { color: var(--green); }
+.hero h1 .g { color: var(--blue); }
 .hero p.sub { color: var(--text-dim); font-size: clamp(14px, 2.4vw, 18px); margin: 10px 0 26px; }
 .hero-search {
   max-width: 640px; margin: 0 auto; display: flex; gap: 8px;
@@ -96,7 +116,7 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-search input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 16px; }
 .hero-search button {
-  background: var(--green); color: #07210f; border: none; border-radius: 999px;
+  background: var(--blue); color: #fff; border: none; border-radius: 999px;
   padding: 11px 22px; font-weight: 800; font-size: 15px; cursor: pointer;
 }
 .hero-tags { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
@@ -288,7 +308,7 @@ a { color: inherit; text-decoration: none; }
 .wiki-modal-msg.err { color: var(--up); }
 .wiki-modal-foot { font-size: 11.5px; color: var(--text-mute); margin: 14px 0 0; }
 .wiki-btn { width: 100%; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 12px; }
-.wiki-btn.primary { background: var(--green); color: #07210f; }
+.wiki-btn.primary { background: var(--blue); color: #fff; }
 .wiki-btn.ghost { background: transparent; border: 1px solid var(--border-2); color: var(--text-dim); }
 .wiki-btn.hidden { display: none; }
 
@@ -637,7 +657,7 @@ main { flex: 1 0 auto; }
   .m-quicknav {
     position: sticky; z-index: 40; top: 0;
     gap: 6px; overflow-x: auto; scrollbar-width: none;
-    background: rgba(15,23,42,.95); backdrop-filter: blur(8px);
+    background: var(--header-bg); backdrop-filter: blur(8px);
     border: 1px solid var(--border); border-radius: 999px;
     padding: 6px; margin-bottom: 14px;
   }
@@ -743,3 +763,13 @@ main { flex: 1 0 auto; }
 .disc-item .ni-body { flex: 1; min-width: 0; }
 .disc-item .ni-title { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; word-break: keep-all; }
 .disc-item .ni-meta { font-size: 11.5px; color: var(--text-mute); margin-top: 2px; }
+
+/* ===== 라이트 모드 가독성 보정: 다크 전용으로 디자인된 '밝은 텍스트' 배지/칩 ===== */
+:root:not([data-theme="dark"]) .stonk-score.g-s { color: #15a06a; }
+:root:not([data-theme="dark"]) .stonk-score.g-a { color: #2563eb; }
+:root:not([data-theme="dark"]) .stonk-score.g-b { color: #b8770b; }
+:root:not([data-theme="dark"]) .stonk-score.g-d { color: #d6394a; }
+:root:not([data-theme="dark"]) .chip.g { color: #15a06a; }
+:root:not([data-theme="dark"]) .rg-now.warn { color: #b8770b; }
+:root:not([data-theme="dark"]) .fg-card.fg-greed .fg-val { color: #5a9e16; }
+:root:not([data-theme="dark"]) .fg-card.fg-extgreed .fg-val { color: #15a06a; }
