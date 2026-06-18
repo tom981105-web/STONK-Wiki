@@ -281,7 +281,8 @@
       urlRoom = p.get("roomId") || p.get("room");
     } catch (e) {}
     const saved = localStorage.getItem(ROOM_KEY);
-    const target = urlRoom || saved;
+    // 단일 방 운영: 항상 고정 방(MAIN)에 연결
+    const target = urlRoom || saved || "MAIN";
     if (target) connect(target);
   }
 
