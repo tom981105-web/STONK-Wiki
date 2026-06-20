@@ -626,10 +626,15 @@
     if (!SC) return "";
     const code = SC.getCurrentRoomCode();
     const company = SC.getUrlCompanyId ? SC.getUrlCompanyId() : "";
-    // 관리자 페이지 링크는 비로그인 사이트(wiki)에서는 노출하지 않는다.
+    const arcade = SC.buildArcadeUrl ? SC.buildArcadeUrl(code) : SC.buildSiteUrl("arcade", { room: code });
+    const gacha = SC.buildGachaUrl ? SC.buildGachaUrl(code) : SC.buildSiteUrl("gacha", { room: code });
+    // 관리자 페이지 링크는 '관리자'에게만 노출(firebase-wiki 가 인증 세션으로 판별해 hidden 해제).
     return (
       `<a class="wiki-cross" href="${SC.buildBattleUrl(code)}" target="_blank" rel="noopener">주식시장</a>` +
-      `<a class="wiki-cross" href="${SC.buildBoardUrl(code)}" target="_blank" rel="noopener">주식소식</a>`
+      `<a class="wiki-cross" href="${SC.buildBoardUrl(code)}" target="_blank" rel="noopener">주식소식</a>` +
+      `<a class="wiki-cross" href="${arcade}" target="_blank" rel="noopener">아케이드</a>` +
+      `<a class="wiki-cross" href="${gacha}" target="_blank" rel="noopener">가챠</a>` +
+      `<a id="wikiNavAdmin" class="wiki-cross" href="${SC.buildAdminUrl(code)}" target="_blank" rel="noopener" hidden>관리자 페이지</a>`
     );
   }
 

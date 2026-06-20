@@ -30,7 +30,27 @@
   const SDK = [
     "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",
     "https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js",
   ];
+  const ADMIN_UID = "yaV8N60yIiUggaWNpNF2VhkCwxb2";
+  const ADMIN_EMAIL = "tomem@naver.com";
+  let adminNavBound = false;
+  // 같은 origin(github.io) Firebase 인증 세션으로 관리자 여부 판별 → 관리자 링크 노출
+  function revealAdminNavIfAdmin() {
+    if (adminNavBound) return; adminNavBound = true;
+    try {
+      if (!window.firebase || !window.firebase.auth) return;
+      window.firebase.auth().onAuthStateChanged((u) => {
+        const el = document.getElementById("wikiNavAdmin");
+        if (!el) return;
+        const isAdm = !!u && (u.uid === ADMIN_UID || String((u.email || "")).toLowerCase() === ADMIN_EMAIL);
+        if (isAdm) { el.hidden = false; return; }
+        if (u && window.firebase.database) {
+          window.firebase.database().ref("admins/" + u.uid).once("value").then((s) => { if (s.val() === true) el.hidden = false; }).catch(() => {});
+        } else { el.hidden = true; }
+      });
+    } catch (e) {}
+  }
   const ROOM_KEY = "wiki-room"; // 연결한 방 코드 (페이지 간 공유)
 
   let db = null;
@@ -71,6 +91,7 @@
       }
       if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseConfig);
       db = window.firebase.database();
+      revealAdminNavIfAdmin();
       return true;
     } catch (e) {
       console.error("[wiki] Firebase 로드 실패:", e);
